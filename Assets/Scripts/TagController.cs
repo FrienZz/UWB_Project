@@ -19,6 +19,8 @@ public class TagController : MonoBehaviour
     public TextMeshProUGUI RangeA3;
     public TextMeshProUGUI RangeA4;
     public TextMeshProUGUI PositionTag ;
+    //[SerializeField] float repeatTime = 4f;
+    //private bool canRepeat = true;
 
     // Start is called before the first frame update
     void Start()
@@ -29,7 +31,12 @@ public class TagController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //StartCoroutine(GetRange());
+        /**
+        if (canRepeat)
+        {
+            StartCoroutine(GetData());
+        }
+        **/
     }
 
     IEnumerator GetData()
@@ -42,6 +49,7 @@ public class TagController : MonoBehaviour
         {
             yield return request.SendWebRequest();
 
+           
             if (request.result == UnityWebRequest.Result.ConnectionError)
                 Debug.LogError(request.error);
             else
@@ -49,21 +57,21 @@ public class TagController : MonoBehaviour
                 string json = request.downloadHandler.text;
                 SimpleJSON.JSONNode range = SimpleJSON.JSON.Parse(json);
 
-                RangeA1.text = "A1 : " + range[0]["range"];
-                RangeA2.text = "A2 : " + range[1]["range"];
-                RangeA3.text = "A3 : " + range[2]["range"];
-                RangeA4.text = "A4 : " + range[3]["range"];
+                RangeA1.text = "A1 : " + range[0]["range"] + "  mm";
+                RangeA2.text = "A2 : " + range[1]["range"] + "  mm"; 
+                RangeA3.text = "A3 : " + range[2]["range"] + "  mm";
+                RangeA4.text = "A4 : " + range[3]["range"] + "  mm";
 
                 for (int i = 0;i < 4; i++)
                 {
-                    distance[i] = range[i]["range"];
+                    distance[i] = range[i]["range"]; 
                 }
             }
 
         }
 
         // {x, y, z, r} units:milimeter
-        float[][] position_anchor = new float [4][] { 
+        List <float[]> position_anchor = new List<float []> { 
             new float[4] { 519.618f, 876.596f, -51.963f, distance[0] }, // Anchor1 : x1,y1,z1,r1
             new float[4] { 19.6184f, 10.5662f, -51.963f, distance[1] }, // Anchor2 : x2,y2,z2,r2
             new float[4] { 1019.62f, 10.5648f, -51.963f, distance[2] }, // Anchor3 : x3,y3,z3,r3
@@ -77,7 +85,13 @@ public class TagController : MonoBehaviour
         float positionY = Convert.ToSingle(Math.Round(position[1, 0], 3));
         float positionZ = Convert.ToSingle(Math.Round(position[2, 0], 3));
 
-        PositionTag.text = "x : " + positionX.ToString().PadRight(9) + "y : " + positionY.ToString().PadRight(9) + "z : " + positionZ.ToString().PadRight(9);
+        PositionTag.text = "X : " + positionX + "  mm\n\n" + "Y : " + positionY + "  mm\n\n" + "Z : " + positionZ + "  mm";
+
+        /*
+        canRepeat = false;
+        yield return new WaitForSeconds(repeatTime);
+        canRepeat = true;
+        */
     }
  
 
@@ -89,22 +103,17 @@ public class TagController : MonoBehaviour
      * a4 (array): anchor4 position(x4,y4,z4,r4)  
      * 
      * Return:
-     * 2d-array : the estimate position(x,y,z) from tag refer to anchor
+     * 2d-array : the estimate position(x,y,z) from tag refer to all set of anchor
     */
     private float[,] CalculatePosition(float[] a1, float[] a2, float[] a3, float[] a4)
     {
 
-        List<float[]> possible_value1 = new List<float[]> { a1, a2, a3 }; // Set of Anchor 1,2,3
-        List<float[]> possible_value2 = new List<float[]> { a1, a2, a4 }; // Set of Anchor 1,2,4
-        List<float[]> possible_value3 = new List<float[]> { a1, a3, a4 }; // Set of Anchor 1,3,4
-        List<float[]> possible_value4 = new List<float[]> { a2, a3, a4 }; // Set of Anchor 2,3,4
-
         // All Set of Anchor nC3
-        List<List<float[]>> all_possible_val = new List<List<float[]>> { 
-            possible_value1, 
-            possible_value2, 
-            possible_value3, 
-            possible_value4 
+        List<List<float[]>> all_set_anchor = new List<List<float[]>> {
+            new List<float[]> { a1, a2, a3 }, // Set of Anchor 1,2,3
+            new List<float[]> { a1, a2, a4 }, // Set of Anchor 1,2,4
+            new List<float[]> { a1, a3, a4 }, // Set of Anchor 1,3,4
+            new List<float[]> { a2, a3, a4 }  // Set of Anchor 2,3,4
         };
         
         float[,] initial_guess = new float[3, 1] { { 0 }, { 0 }, { 0 } };
@@ -112,9 +121,9 @@ public class TagController : MonoBehaviour
 
         for(int i = 0; i < 4; i++)
         {
-            float[,] inv_matrix = InverseJacobianMatrix3x3(all_possible_val.ElementAt(i), initial_guess);
-            float[,] initial_func_matrix = FindFunctionValue(all_possible_val.ElementAt(i), initial_guess);
-            set_of_position.Add(NewtonRapsonMethod(inv_matrix, initial_func_matrix, all_possible_val.ElementAt(i), initial_guess));
+            float[,] inv_matrix = InverseJacobianMatrix3x3(all_set_anchor.ElementAt(i), initial_guess);
+            float[,] initial_func_matrix = FindFunctionValue(all_set_anchor.ElementAt(i), initial_guess);
+            set_of_position.Add(NewtonRapsonMethod(inv_matrix, initial_func_matrix, all_set_anchor.ElementAt(i), initial_guess));
         }
 
         /*
@@ -145,7 +154,17 @@ public class TagController : MonoBehaviour
         return final_result;
     }
 
-    private float[,] NewtonRapsonMethod(float [,] inv_matrix , float[,] initial_func_matrix, List<float[]> all_possible_val,float [,] initial_guess)
+    /*
+     * Parameter:
+     * inv_matrix (2d-array): inverse of matrix size3*3
+     * initial_func_matrix (2d-array): matrix size3*1 with initial guess value
+     * set_anchor (List of array): each set of anchor in C(4,3)
+     * initial_guess (2d-array): initial guess value of matrix size3*1   
+     * 
+     * Return:
+     * 2d-array : the estimate position(x,y,z) from tag refer to specific set of anchor
+    */
+    private float[,] NewtonRapsonMethod(float [,] inv_matrix , float[,] initial_func_matrix, List<float[]> set_anchor,float [,] initial_guess)
     {
 
         float[,] result = new float[3, 1];
@@ -162,8 +181,8 @@ public class TagController : MonoBehaviour
                 //Debug.Log(result[j, 0]);
             }
             current_round = result;
-            current_matrix = InverseJacobianMatrix3x3(all_possible_val, current_round);
-            current_func = FindFunctionValue(all_possible_val, result);
+            current_matrix = InverseJacobianMatrix3x3(set_anchor, current_round);
+            current_func = FindFunctionValue(set_anchor, result);
             multiply_matrix = Matrix3x3_multiplication(current_matrix, current_func);
         }
 
@@ -172,19 +191,19 @@ public class TagController : MonoBehaviour
 
     /*
      * Parameter:
-     * possible_val (List of array) : each set of anchor in C(4,3)
+     * set_anchor (List of array) : each set of anchor in C(4,3)
      * initial_guess (2d-array): initial guess value of matrix size3*1 
      * 
      * Return:
      * 2d-array : function value of matrix size3*1
     */
-    private float[,] FindFunctionValue(List<float[]> possible_val,float[,] initial_guess)
+    private float[,] FindFunctionValue(List<float[]> set_anchor,float[,] initial_guess)
     {
         float[,] func_val = new float[3, 1];
 
         for (int i = 0;i < 3; i++)
         {
-            func_val[i, 0] = Convert.ToSingle(Math.Pow(initial_guess[0, 0] - possible_val.ElementAt(i)[0], 2) + Math.Pow(initial_guess[1, 0] - possible_val.ElementAt(i)[1], 2) + Math.Pow(initial_guess[2, 0] - possible_val.ElementAt(i)[2], 2) - Math.Pow(possible_val.ElementAt(i)[3],2));
+            func_val[i, 0] = Convert.ToSingle(Math.Pow(initial_guess[0, 0] - set_anchor.ElementAt(i)[0], 2) + Math.Pow(initial_guess[1, 0] - set_anchor.ElementAt(i)[1], 2) + Math.Pow(initial_guess[2, 0] - set_anchor.ElementAt(i)[2], 2) - Math.Pow(set_anchor.ElementAt(i)[3],2));
         }
 
         return func_val ;
@@ -229,6 +248,49 @@ public class TagController : MonoBehaviour
         return det ;
     }
 
+   /*
+    * Parameter:
+    * matrix (2d-array) : matrix size2*2 
+    * 
+    * Return:
+    * 2d-array : determinant of matrix size2*2
+   */
+    private float DeterminantMatrix2x2(float[,] matrix)
+    {
+
+        float det = 0;
+        det = matrix[0, 0] * matrix[1, 1] - matrix[1, 0] * matrix[0,1];
+
+        return det;
+    }
+
+    /*
+     * Parameter:
+     * matrix (2d-array) : matrix size3*3 
+     * row (int) : remove specific row of matrix size3*3
+     * col (int) : remove specific column of matrix size3*3
+     * 
+     * Return:
+     * 2d-array : submatrix size2*2
+    */
+    private float[,] SubMatrix3x3(float[,] matrix , int row , int col)
+    {
+
+        float[,] submatrix = new float[2, 2];
+        for(int i = 0;i < 3; i++)
+        {
+            for(int j = 0;i != row && j < 3; j++)
+            {
+                if(j != col)
+                {
+                    submatrix[i < row ? i : i - 1,j < col ? j : j-1] = matrix[i,j];
+                }
+            }
+        } 
+
+        return submatrix;
+    }
+
     /*
      * Parameter:
      * matrix (2d-array) : matrix size3*3 
@@ -258,7 +320,7 @@ public class TagController : MonoBehaviour
      * initial_guess (2d-array) : initial guess value of matrix size3*1
      * 
      * Return:
-     * 2d-array : inverse of jacobian_matrix size3*3
+     * 2d-array : inverse of partial_matrix size3*3
     */
     private float[,] InverseJacobianMatrix3x3(List<float[]> input, float[,] initial_guess)
     {
@@ -292,24 +354,20 @@ public class TagController : MonoBehaviour
         float[,] inv = new float[3, 3];
 
         float det = DeterminantMatrix3x3(t_matrix);
-
-        if(det == 0)
+        
+        if (det == 0)
         {
             throw new InvalidOperationException("Matrix is not invertible.");
         }
 
         //cofactor matrix2*2 for each row and column
-        inv[0, 0] = (t_matrix[1, 1] * t_matrix[2, 2] - (t_matrix[2, 1] * t_matrix[1, 2])) / det;
-        inv[0, 1] = -(t_matrix[1, 0] * t_matrix[2, 2] - (t_matrix[2, 0] * t_matrix[1, 2])) / det;
-        inv[0, 2] = (t_matrix[1, 0] * t_matrix[2, 1] - (t_matrix[2, 0] * t_matrix[1, 1])) / det;
-
-        inv[1, 0] = -(t_matrix[0, 1] * t_matrix[2, 2] - (t_matrix[2, 1] * t_matrix[0, 2])) / det;
-        inv[1, 1] = (t_matrix[0, 0] * t_matrix[2, 2] - (t_matrix[2, 0] * t_matrix[0, 2])) / det;
-        inv[1, 2] = -(t_matrix[0, 0] * t_matrix[2, 1] - (t_matrix[2, 0] * t_matrix[0, 1])) / det;
-
-        inv[2, 0] = (t_matrix[0, 1] * t_matrix[1, 2] - (t_matrix[1, 1] * t_matrix[0, 2])) / det;
-        inv[2, 1] = -(t_matrix[0, 0] * t_matrix[1, 2] - (t_matrix[1, 0] * t_matrix[0, 2])) / det;
-        inv[2, 2] = (t_matrix[0, 0] * t_matrix[1, 1] - (t_matrix[1, 0] * t_matrix[0, 1])) / det;
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                inv[i, j] = Convert.ToSingle(Math.Pow(-1, i + j)) * DeterminantMatrix2x2(SubMatrix3x3(t_matrix,i,j)) / det;
+            }
+        }
 
         return inv;
     }
