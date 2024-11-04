@@ -138,9 +138,7 @@ public class TagController : MonoBehaviour
         */
         
 
-        float x_mean = 0;
-        float y_mean = 0;
-        float z_mean = 0;
+        float x_mean = 0 , y_mean = 0, z_mean = 0;
         for (int i = 0;i < 4; i++)
         {
             x_mean += set_of_position.ElementAt(i)[0, 0] / 4;
@@ -257,9 +255,7 @@ public class TagController : MonoBehaviour
    */
     private float DeterminantMatrix2x2(float[,] matrix)
     {
-
-        float det = 0;
-        det = matrix[0, 0] * matrix[1, 1] - matrix[1, 0] * matrix[0,1];
+        float det = matrix[0, 0] * matrix[1, 1] - matrix[1, 0] * matrix[0,1];
 
         return det;
     }
