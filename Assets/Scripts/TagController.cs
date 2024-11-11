@@ -19,8 +19,6 @@ public class TagController : MonoBehaviour
     public TextMeshProUGUI RangeA3;
     public TextMeshProUGUI RangeA4;
     public TextMeshProUGUI PositionTag ;
-    //[SerializeField] float repeatTime = 4f;
-    //private bool canRepeat = true;
 
     // Start is called before the first frame update
     void Start()
@@ -31,67 +29,61 @@ public class TagController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        /**
-        if (canRepeat)
-        {
-            StartCoroutine(GetData());
-        }
-        **/
     }
 
     IEnumerator GetData()
     {
 
         float[] distance = new float[4];
-  
 
-        using (UnityWebRequest request = UnityWebRequest.Get(URL))
-        {
-            yield return request.SendWebRequest();
-
-           
-            if (request.result == UnityWebRequest.Result.ConnectionError)
-                Debug.LogError(request.error);
-            else
+        //while (true)
+        //{
+            using (UnityWebRequest request = UnityWebRequest.Get(URL))
             {
-                string json = request.downloadHandler.text;
-                SimpleJSON.JSONNode range = SimpleJSON.JSON.Parse(json);
+                yield return request.SendWebRequest();
 
-                RangeA1.text = "A1 : " + range[0]["range"] + "  mm";
-                RangeA2.text = "A2 : " + range[1]["range"] + "  mm"; 
-                RangeA3.text = "A3 : " + range[2]["range"] + "  mm";
-                RangeA4.text = "A4 : " + range[3]["range"] + "  mm";
 
-                for (int i = 0;i < 4; i++)
+                if (request.result == UnityWebRequest.Result.ConnectionError)
+                    Debug.LogError(request.error);
+                else
                 {
-                    distance[i] = range[i]["range"]; 
+                    string json = request.downloadHandler.text;
+                    SimpleJSON.JSONNode range = SimpleJSON.JSON.Parse(json);
+
+                    RangeA1.text = "A1 : " + range[0]["range"] + "  mm";
+                    RangeA2.text = "A2 : " + range[1]["range"] + "  mm";
+                    RangeA3.text = "A3 : " + range[2]["range"] + "  mm";
+                    RangeA4.text = "A4 : " + range[3]["range"] + "  mm";
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        distance[i] = range[i]["range"];
+                    }
                 }
+
             }
 
-        }
-
-        // {x, y, z, r} units:milimeter
-        List <float[]> position_anchor = new List<float []> { 
+            // {x, y, z, r} units:milimeter
+            List<float[]> position_anchor = new List<float[]> {
             new float[4] { 519.618f, 876.596f, -51.963f, distance[0] }, // Anchor1 : x1,y1,z1,r1
             new float[4] { 19.6184f, 10.5662f, -51.963f, distance[1] }, // Anchor2 : x2,y2,z2,r2
             new float[4] { 1019.62f, 10.5648f, -51.963f, distance[2] }, // Anchor3 : x3,y3,z3,r3
             new float[4] { 519.618f, 299.242f, 764.531f, distance[3] }  // Anchor4 : x4,y4,z4,r4
         };
 
-        float[,] position = CalculatePosition(position_anchor[0], position_anchor[1], position_anchor[2], position_anchor[3]);
+            float[,] position = CalculatePosition(position_anchor[0], position_anchor[1], position_anchor[2], position_anchor[3]);
 
-        //Round to 3 decimal places
-        float positionX = Convert.ToSingle(Math.Round(position[0, 0], 3));
-        float positionY = Convert.ToSingle(Math.Round(position[1, 0], 3));
-        float positionZ = Convert.ToSingle(Math.Round(position[2, 0], 3));
+            //Round to 3 decimal places
+            float positionX = Convert.ToSingle(Math.Round(position[0, 0], 3));
+            float positionY = Convert.ToSingle(Math.Round(position[1, 0], 3));
+            float positionZ = Convert.ToSingle(Math.Round(position[2, 0], 3));
 
-        PositionTag.text = "X : " + positionX + "  mm\n\n" + "Y : " + positionY + "  mm\n\n" + "Z : " + positionZ + "  mm";
+            PositionTag.text = "X : " + positionX + "  mm\n\n" + "Y : " + positionY + "  mm\n\n" + "Z : " + positionZ + "  mm";
 
-        /*
-        canRepeat = false;
-        yield return new WaitForSeconds(repeatTime);
-        canRepeat = true;
-        */
+            transform.position = new Vector3(393+370.45f, 65, positionZ);
+            //yield return new WaitForSeconds(1f);
+        //}
+       
     }
  
 
