@@ -12,11 +12,11 @@ public class SubmitControl : MonoBehaviour
 
     public void Submit()
    {
-        if (dropdown.value == 0)
+        if (dropdown.value == 1)
         {
             SceneManager.LoadScene("Room521");
         }
-        if (dropdown.value == 1)
+        if (dropdown.value == 2)
         {
             SceneManager.LoadScene("Room516");
         }

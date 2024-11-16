@@ -19,10 +19,13 @@ public class TagController : MonoBehaviour
     public TextMeshProUGUI RangeA3;
     public TextMeshProUGUI RangeA4;
     public TextMeshProUGUI PositionTag ;
+    public Transform[] anchors;
+    public Transform  map;
 
     // Start is called before the first frame update
     void Start()
     {
+        transform.position = new Vector3(map.position.x, map.position.y, map.position.z);
         StartCoroutine(GetData());
     }
 
@@ -48,16 +51,16 @@ public class TagController : MonoBehaviour
                 else
                 {
                     string json = request.downloadHandler.text;
-                    SimpleJSON.JSONNode range = SimpleJSON.JSON.Parse(json);
+                    SimpleJSON.JSONNode data = SimpleJSON.JSON.Parse(json);
 
-                    RangeA1.text = "A1 : " + range[0]["range"] + "  mm";
-                    RangeA2.text = "A2 : " + range[1]["range"] + "  mm";
-                    RangeA3.text = "A3 : " + range[2]["range"] + "  mm";
-                    RangeA4.text = "A4 : " + range[3]["range"] + "  mm";
+                    RangeA1.text = "A1 : " + data[0]["distance"] + "  mm";
+                    RangeA2.text = "A2 : " + data[1]["distance"] + "  mm";
+                    RangeA3.text = "A3 : " + data[2]["distance"] + "  mm";
+                    RangeA4.text = "A4 : " + data[3]["distance"] + "  mm";
 
                     for (int i = 0; i < 4; i++)
                     {
-                        distance[i] = range[i]["range"];
+                        distance[i] = data[i]["distance"];
                     }
                 }
 
@@ -65,11 +68,11 @@ public class TagController : MonoBehaviour
 
             // {x, y, z, r} units:milimeter
             List<float[]> position_anchor = new List<float[]> {
-            new float[4] { 519.618f, 876.596f, -51.963f, distance[0] }, // Anchor1 : x1,y1,z1,r1
-            new float[4] { 19.6184f, 10.5662f, -51.963f, distance[1] }, // Anchor2 : x2,y2,z2,r2
-            new float[4] { 1019.62f, 10.5648f, -51.963f, distance[2] }, // Anchor3 : x3,y3,z3,r3
-            new float[4] { 519.618f, 299.242f, 764.531f, distance[3] }  // Anchor4 : x4,y4,z4,r4
-        };
+                new float[4] { 519.618f, 876.596f, -51.963f, distance[0] }, // Anchor1 : x1,y1,z1,r1
+                new float[4] { 19.6184f, 10.5662f, -51.963f, distance[1] }, // Anchor2 : x2,y2,z2,r2
+                new float[4] { 1019.62f, 10.5648f, -51.963f, distance[2] }, // Anchor3 : x3,y3,z3,r3
+                new float[4] { 519.618f, 299.242f, 764.531f, distance[3] }  // Anchor4 : x4,y4,z4,r4
+            };
 
             float[,] position = CalculatePosition(position_anchor[0], position_anchor[1], position_anchor[2], position_anchor[3]);
 
@@ -80,10 +83,9 @@ public class TagController : MonoBehaviour
 
             PositionTag.text = "X : " + positionX + "  mm\n\n" + "Y : " + positionY + "  mm\n\n" + "Z : " + positionZ + "  mm";
 
-            transform.position = new Vector3(393+370.45f, 65, positionZ);
             //yield return new WaitForSeconds(1f);
-        //}
-       
+            //}
+
     }
  
 
