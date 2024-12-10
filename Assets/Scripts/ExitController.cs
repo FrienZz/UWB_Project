@@ -2,10 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ExitControl : MonoBehaviour
+public class ExitController : MonoBehaviour
 {
-   public void Exit()
+
+    public void Exit()
     {
+        Debug.Log("Exit");
         Application.Quit();
     }
 }

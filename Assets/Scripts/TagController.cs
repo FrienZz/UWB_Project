@@ -12,15 +12,15 @@ using static System.Net.WebRequestMethods;
 
 public class TagController : MonoBehaviour
 {
-    private string URL = "https://670d5835073307b4ee433e78.mockapi.io/anchor";
+    private string URL = "https://project.nwisaku.xyz/api/GetTagMeasureLogs/6";
+    private string token = "1|01m3NwIqSrIBigTX5YHmS0NniUn2knlLyNOz4TZWe9317dd7";
 
-    public TextMeshProUGUI RangeA1;
-    public TextMeshProUGUI RangeA2;
-    public TextMeshProUGUI RangeA3;
-    public TextMeshProUGUI RangeA4;
+   
+    public TextMeshProUGUI [] Range;
     public TextMeshProUGUI PositionTag ;
     public Transform[] anchors;
     public Transform  map;
+    public static bool active = false;
 
     // Start is called before the first frame update
     void Start()
@@ -39,53 +39,59 @@ public class TagController : MonoBehaviour
 
         float[] distance = new float[4];
 
-        //while (true)
-        //{
-            using (UnityWebRequest request = UnityWebRequest.Get(URL))
+
+        while (true)
+        {
+            if (active)
             {
-                yield return request.SendWebRequest();
-
-
-                if (request.result == UnityWebRequest.Result.ConnectionError)
-                    Debug.LogError(request.error);
-                else
+                using (UnityWebRequest request = UnityWebRequest.Get(URL))
                 {
-                    string json = request.downloadHandler.text;
-                    SimpleJSON.JSONNode data = SimpleJSON.JSON.Parse(json);
 
-                    RangeA1.text = "A1 : " + data[0]["distance"] + "  mm";
-                    RangeA2.text = "A2 : " + data[1]["distance"] + "  mm";
-                    RangeA3.text = "A3 : " + data[2]["distance"] + "  mm";
-                    RangeA4.text = "A4 : " + data[3]["distance"] + "  mm";
+                    request.SetRequestHeader("Authorization", "Bearer " + token);
+                    yield return request.SendWebRequest();
 
-                    for (int i = 0; i < 4; i++)
+
+                    if (request.result == UnityWebRequest.Result.ConnectionError)
+                        Debug.LogError(request.error);
+                    else
                     {
-                        distance[i] = data[i]["distance"];
+                        string json = request.downloadHandler.text;
+                        SimpleJSON.JSONNode data = SimpleJSON.JSON.Parse(json);
+
+                        //Debug.Log(data["data"][3]["timestamp"]);
+                        
+                        for(int i = 0;i < Range.Length; i++)
+                        {
+                            Range[i].text = $"A{i+1} : " + data["data"][i]["distance"] + "  mm";
+                            distance[i] = data["data"][i]["distance"];
+                        }
+                        
+                        
                     }
+
                 }
 
-            }
-
-            // {x, y, z, r} units:milimeter
-            List<float[]> position_anchor = new List<float[]> {
-                new float[4] { 519.618f, 876.596f, -51.963f, distance[0] }, // Anchor1 : x1,y1,z1,r1
-                new float[4] { 19.6184f, 10.5662f, -51.963f, distance[1] }, // Anchor2 : x2,y2,z2,r2
+                // {x, y, z, r} units:milimeter
+                List<float[]> position_anchor = new List<float[]> {
+                new float[4] { 19.6184f, 10.5662f, -51.963f, distance[0] }, // Anchor1 : x1,y1,z1,r1
+                new float[4] { 519.618f, 876.596f, -51.963f, distance[1] }, // Anchor2 : x2,y2,z2,r2
                 new float[4] { 1019.62f, 10.5648f, -51.963f, distance[2] }, // Anchor3 : x3,y3,z3,r3
                 new float[4] { 519.618f, 299.242f, 764.531f, distance[3] }  // Anchor4 : x4,y4,z4,r4
             };
 
-            float[,] position = CalculatePosition(position_anchor[0], position_anchor[1], position_anchor[2], position_anchor[3]);
+                float[,] position = CalculatePosition(position_anchor[0], position_anchor[1], position_anchor[2], position_anchor[3]);
 
-            //Round to 3 decimal places
-            float positionX = Convert.ToSingle(Math.Round(position[0, 0], 3));
-            float positionY = Convert.ToSingle(Math.Round(position[1, 0], 3));
-            float positionZ = Convert.ToSingle(Math.Round(position[2, 0], 3));
+                //Round to 3 decimal places
+                float positionX = Convert.ToSingle(Math.Round(position[0, 0], 3));
+                float positionY = Convert.ToSingle(Math.Round(position[1, 0], 3));
+                float positionZ = Convert.ToSingle(Math.Round(position[2, 0], 3));
 
-            PositionTag.text = "X : " + positionX + "  mm\n\n" + "Y : " + positionY + "  mm\n\n" + "Z : " + positionZ + "  mm";
+                PositionTag.text = "x : " + positionX + "  mm\n\n" + "y : " + positionY + "  mm\n\n" + "z : " + positionZ + "  mm";
 
-            //yield return new WaitForSeconds(1f);
-            //}
-
+            }
+            yield return new WaitForSeconds(1f);
+        }
+        
     }
  
 
@@ -113,13 +119,13 @@ public class TagController : MonoBehaviour
         float[,] initial_guess = new float[3, 1] { { 0 }, { 0 }, { 0 } };
         List < float[,]> set_of_position = new List<float[,]>();
 
-        for(int i = 0; i < 4; i++)
+        foreach(List<float[]> set_anchor in all_set_anchor)
         {
-            float[,] inv_matrix = InverseJacobianMatrix3x3(all_set_anchor.ElementAt(i), initial_guess);
-            float[,] initial_func_matrix = FindFunctionValue(all_set_anchor.ElementAt(i), initial_guess);
-            set_of_position.Add(NewtonRapsonMethod(inv_matrix, initial_func_matrix, all_set_anchor.ElementAt(i), initial_guess));
+            float[,] inv_matrix = InverseJacobianMatrix3x3(set_anchor, initial_guess);
+            float[,] initial_func_matrix = FindFunctionValue(set_anchor, initial_guess);
+            set_of_position.Add(NewtonRapsonMethod(inv_matrix, initial_func_matrix, set_anchor, initial_guess));
         }
-
+        
         /*
         for(int i = 0;i < 4; i++)
         {
@@ -130,14 +136,14 @@ public class TagController : MonoBehaviour
             Debug.Log("\n");
         }
         */
-        
+
 
         float x_mean = 0 , y_mean = 0, z_mean = 0;
-        for (int i = 0;i < 4; i++)
+        foreach(float[,] pos in set_of_position)
         {
-            x_mean += set_of_position.ElementAt(i)[0, 0] / 4;
-            y_mean += set_of_position.ElementAt(i)[1, 0] / 4;
-            z_mean += set_of_position.ElementAt(i)[2, 0] / 4;
+            x_mean += pos[0, 0] / set_of_position.Count;
+            y_mean += pos[1, 0] / set_of_position.Count;
+            z_mean += pos[2, 0] / set_of_position.Count;
         }
 
         float[,] final_result = new float[3, 1] { { x_mean } , { y_mean }, {z_mean } };
@@ -345,7 +351,7 @@ public class TagController : MonoBehaviour
 
         float det = DeterminantMatrix3x3(t_matrix);
         
-        if (det == 0)
+        if (Math.Abs(det) < 1e-6)
         {
             throw new InvalidOperationException("Matrix is not invertible.");
         }
@@ -365,3 +371,6 @@ public class TagController : MonoBehaviour
     
 
 }
+
+
+

@@ -337,12 +337,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 156513910}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 463.67075, y: 188.29874, z: -2.2358131}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -496.3284, y: -1.7012634, z: -2.2358131}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1771300431}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &156513913
 MonoBehaviour:
@@ -836,7 +836,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.62700003}
-  m_AnchoredPosition: {x: 148.13, y: -54}
+  m_AnchoredPosition: {x: 148.13, y: -65}
   m_SizeDelta: {x: 498.0738, y: 23.6316}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &809450729
@@ -1226,7 +1226,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1156654671}
-  - component: {fileID: 1156654670}
+  - component: {fileID: 1156654672}
   m_Layer: 0
   m_Name: ExitController
   m_TagString: Untagged
@@ -1234,7 +1234,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1156654670
+--- !u!4 &1156654671
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1156654669}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 344.19678, y: 107.729675, z: -4.78754}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1416394165}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1156654672
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1246,21 +1261,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d3ad6ef5708edf4ea229d8db4b35862, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!4 &1156654671
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1156654669}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 422.19675, y: 231.04962, z: -4.78754}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1241111504
 GameObject:
   m_ObjectHideFlags: 0
@@ -1668,6 +1668,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1156654671}
   - {fileID: 1307533942}
   m_Father: {fileID: 1241111508}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1720,8 +1721,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1156654670}
-        m_TargetAssemblyTypeName: ExitControl, Assembly-CSharp
+      - m_Target: {fileID: 1156654672}
+        m_TargetAssemblyTypeName: ExitController, Assembly-CSharp
         m_MethodName: Exit
         m_Mode: 1
         m_Arguments:
@@ -1998,7 +1999,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -0.0000076294, y: -64.942}
+  m_AnchoredPosition: {x: -0.0000076294, y: -91}
   m_SizeDelta: {x: 201.8083, y: 82.6407}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1743169609
@@ -2205,6 +2206,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 701745029}
+  - {fileID: 156513912}
   m_Father: {fileID: 1241111508}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -2838,5 +2840,3 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 1241111508}
   - {fileID: 1678442609}
-  - {fileID: 156513912}
-  - {fileID: 1156654671}
